@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa sản phẩm -
+        <%= product.name %>
+    </title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            /* Quan trọng để input không bị tràn */
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.2);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 2;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            background-color: #95a5a6;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #7f8c8d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Chỉnh sửa sản phẩm</h2>
+
+        <form action="/update/<%= product.id %>" method="post">
+            <div class="form-group">
+                <label>Tên sản phẩm</label>
+                <input name="name" value="<%= product.name %>" required>
+            </div>
+
+            <div class="form-group">
+                <label>Giá bán (VNĐ)</label>
+                <input name="price" type="number" value="<%= product.price %>" required>
+            </div>
+
+            <div class="form-group">
+                <label>Số lượng kho</label>
+                <input name="quantity" type="number" value="<%= product.quantity %>" required>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit">Cập nhật</button>
+                <a href="/" class="btn-cancel">Hủy bỏ</a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

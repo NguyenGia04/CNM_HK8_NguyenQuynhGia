@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm - Nguyễn Quỳnh Gia</title>
+    <style>
+        /* Toàn bộ trang */
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        /* Style cho Form */
+        
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input:focus {
+            border-color: #3498db;
+        }
+        
+        button.btn-add {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        button.btn-add:hover {
+            background-color: #219150;
+        }
+        /* Style cho Bảng */
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        /* Nút Sửa/Xóa */
+        
+        .btn-edit {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .btn-delete {
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: flex-end;
+            /* Đẩy thanh tìm kiếm sang phải */
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 10px;
+            background: none;
+            /* Bỏ background xám của form thêm mới */
+            padding: 0;
+        }
+        
+        .search-form input {
+            width: 250px;
+        }
+        
+        .btn-search {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-clear {
+            background-color: #bdc3c7;
+            color: #333;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-edit:hover,
+        .btn-delete:hover {
+            text-decoration: underline;
+        }
+        /* Responsive cho di động */
+        
+        @media (max-width: 600px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Thêm Sản Phẩm Mới</h2>
+        <form action="/add" method="post">
+            <div class="form-group">
+                <label>Tên sản phẩm</label>
+                <input name="name" placeholder="Ví dụ: Laptop Dell" required>
+            </div>
+            <div class="form-group">
+                <label>Giá (VNĐ)</label>
+                <input name="price" type="number" placeholder="0" required>
+            </div>
+            <div class="form-group">
+                <label>Số lượng</label>
+                <input name="quantity" type="number" placeholder="0" required>
+            </div>
+            <button class="btn-add">Thêm mới</button>
+        </form>
+        <div class="search-container">
+            <form action="/" method="get" class="search-form">
+                <input type="text" name="q" placeholder="Nhập tên sản phẩm..." value="<%= locals.searchQuery || '' %>">
+
+                <button type="submit" class="btn-search">Tìm kiếm</button>
+
+                <% if (locals.searchQuery) { %>
+                    <a href="/" class="btn-clear">Xóa lọc</a>
+                    <% } %>
+            </form>
+        </div>
+        <h2>Danh sách sản phẩm</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(p => { %>
+                    <tr>
+                        <td>#
+                            <%= p.id %>
+                        </td>
+                        <td style="font-weight: 500;">
+                            <%= p.name %>
+                        </td>
+                        <td>
+                            <%= p.price.toLocaleString() %> đ</td>
+                        <td>
+                            <%= p.quantity %>
+                        </td>
+                        <td>
+                            <a href="/edit/<%= p.id %>" class="btn-edit">Sửa</a>
+                            <a href="/delete/<%= p.id %>" class="btn-delete" onclick="return confirm('Bạn có chắc chắn muốn xóa?')">Xóa</a>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
