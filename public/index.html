@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Activity Logger</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f4f4f9; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #2980b9; }
+        .log-list { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        .log-item { background: #fff; border-left: 4px solid #27ae60; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Student Activity Logger</h1>
+    
+    <div class="input-group">
+        <label>Tên sinh viên:</label>
+        <input type="text" id="studentName" placeholder="Ví dụ: Nguyen Van A">
+    </div>
+    <div class="input-group">
+        <label>Hành động:</label>
+        <input type="text" id="action" placeholder="Ví dụ: Nộp bài Lab 1">
+    </div>
+    <button onclick="submitAction()">Gửi Log Hoạt Động</button>
+
+    <div class="log-list">
+        <h3>Lịch sử hoạt động (Real-time update)</h3>
+        <div id="logsContainer">Loading...</div>
+    </div>
+</div>
+
+<script>
+    async function submitAction() {
+        const name = document.getElementById('studentName').value;
+        const action = document.getElementById('action').value;
+
+        if(!name || !action) return alert("Vui lòng nhập đủ thông tin!");
+
+        const response = await fetch('/api/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, action })
+        });
+
+        if (response.ok) {
+            document.getElementById('action').value = '';
+            loadLogs(); 
+        }
+    }
+
+    async function loadLogs() {
+        const res = await fetch('/api/history');
+        const data = await res.json();
+        
+        const container = document.getElementById('logsContainer');
+        container.innerHTML = ''; 
+
+        data.logs.forEach(log => {
+            const div = document.createElement('div');
+            div.className = 'log-item';
+            div.innerText = log;
+            container.appendChild(div);
+        });
+    }
+
+    loadLogs();
+</script>
+
+</body>
+</html>
