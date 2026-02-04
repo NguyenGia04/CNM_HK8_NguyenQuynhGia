@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sản Phẩm (DynamoDB + S3)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body { background-color: #f8f9fa; }
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .table-hover tbody tr:hover { background-color: #f1f1f1; }
+        .modal-backdrop { backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h2 class="text-center text-primary mb-4 fw-bold">🛒 Quản Lý Shop (AWS DynamoDB & S3)</h2>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">➕ Thêm Sản Phẩm</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="productForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Mã SP (ID)</label>
+                                <input type="text" id="id" class="form-control" required placeholder="Ví dụ: P001">
+                                <small class="text-muted">Đây là Khóa chính (Partition Key)</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tên Sản Phẩm</label>
+                                <input type="text" id="name" class="form-control" required placeholder="Ví dụ: iPhone 15">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Giá (Price)</label>
+                                <input type="number" id="price" class="form-control" required placeholder="Ví dụ: 20000">
+                                <small class="text-danger">Đây là Khóa phụ (Sort Key) - Bắt buộc</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Số lượng</label>
+                                <input type="number" id="quantity" class="form-control" placeholder="Ví dụ: 10">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Hình ảnh</label>
+                                <input type="file" id="imageFile" class="form-control" accept="image/*">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2">💾 Lưu vào Database</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary">📦 Danh Sách Hiện Có</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadProducts()">🔄 Làm mới</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Ảnh</th>
+                                        <th>Mã (ID)</th>
+                                        <th>Tên</th>
+                                        <th>Giá</th>
+                                        <th>SL</th>
+                                        <th class="text-center">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa Sản Phẩm -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">✏️ Sửa Sản Phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="edit_id">
+                        <input type="hidden" id="edit_old_price">
+                        <input type="hidden" id="edit_old_image">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mã SP (ID)</label>
+                            <input type="text" id="edit_id_display" class="form-control" disabled>
+                            <small class="text-muted">Không thể thay đổi</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên Sản Phẩm</label>
+                            <input type="text" id="edit_name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Giá Mới (Price)</label>
+                            <input type="number" id="edit_price" class="form-control" required>
+                            <small class="text-danger">Có thể thay đổi</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số lượng</label>
+                            <input type="number" id="edit_quantity" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hình ảnh</label>
+                            <input type="file" id="edit_imageFile" class="form-control" accept="image/*">
+                            <small class="text-muted">Để trống nếu không thay đổi ảnh</small>
+                        </div>
+
+                        <div id="edit_image_preview" class="mb-3">
+                            <img id="edit_img_current" src="" style="max-width: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning" onclick="saveEdit()">💾 Cập nhật</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/products';
+        let editModal = null;
+        
+        // Khởi tạo modal khi DOM sẵn sàng
+        function initModal() {
+            if (!editModal) {
+                editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            }
+        }
+
+        // 1. Hàm tải danh sách sản phẩm
+        async function loadProducts() {
+            const tbody = document.getElementById('tableBody');
+            
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                
+                tbody.innerHTML = ''; // Xóa dữ liệu cũ
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Chưa có sản phẩm nào</td></tr>';
+                    return;
+                }
+
+                data.forEach(p => {
+                    const tr = document.createElement('tr');
+                    
+                    // Xử lý hiển thị giá tiền đẹp hơn
+                    const formattedPrice = p.price ? parseInt(p.price).toLocaleString('vi-VN') : 0;
+
+                    tr.innerHTML = `
+                        <td>
+                            <img src="${p.url_image || 'https://via.placeholder.com/150?text=No+Img'}" 
+                                 class="product-img" alt="Product Image">
+                        </td>
+                        <td class="fw-bold text-primary">${p.id}</td>
+                        <td>${p.name}</td>
+                        <td class="fw-bold text-success">${formattedPrice} đ</td>
+                        <td>${p.quantity || 0}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-info text-white me-2" 
+                                    onclick="openEditModal('${p.id}', '${p.name}', ${p.price}, ${p.quantity || 0}, '${p.url_image}')">
+                                ✏️ Sửa
+                            </button>
+                            <button class="btn btn-sm btn-danger" 
+                                    onclick="deleteItem('${p.id}', ${p.price})">
+                                🗑 Xóa
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối Server!</td></tr>';
+            }
+        }
+
+        // 2. Mở Modal Sửa
+        function openEditModal(id, name, price, quantity, imageUrl) {
+            try {
+                initModal(); // Đảm bảo modal được khởi tạo
+                
+                document.getElementById('edit_id').value = id;
+                document.getElementById('edit_id_display').value = id;
+                document.getElementById('edit_name').value = name;
+                document.getElementById('edit_price').value = price;
+                document.getElementById('edit_quantity').value = quantity;
+                document.getElementById('edit_old_price').value = price;
+                document.getElementById('edit_old_image').value = imageUrl;
+                document.getElementById('edit_img_current').src = imageUrl || 'https://via.placeholder.com/150?text=No+Img';
+                
+                editModal.show();
+            } catch (err) {
+                console.error('Lỗi mở modal:', err);
+                alert('❌ Lỗi mở form sửa: ' + err.message);
+            }
+        }
+
+        // 3. Lưu Sửa (Gửi FormData để xử lý cả file và dữ liệu)
+        async function saveEdit() {
+            const id = document.getElementById('edit_id').value;
+            const name = document.getElementById('edit_name').value;
+            const price = document.getElementById('edit_price').value;
+            const quantity = document.getElementById('edit_quantity').value;
+            const old_price = document.getElementById('edit_old_price').value;
+            const old_image = document.getElementById('edit_old_image').value;
+            const fileInput = document.getElementById('edit_imageFile');
+
+            if (!name || !price) {
+                alert('❌ Vui lòng nhập Tên và Giá!');
+                return;
+            }
+
+            // Tạo FormData
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('name', name);
+            formData.append('price', price);
+            formData.append('quantity', quantity);
+            formData.append('old_price', old_price);
+            formData.append('old_image', old_image);
+
+            // Nếu có file ảnh mới thì thêm vào
+            if (fileInput.files[0]) {
+                formData.append('imageFile', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert('✅ Cập nhật thành công!');
+                    editModal.hide();
+                    loadProducts();
+                } else {
+                    const errorData = await res.json();
+                    alert('❌ Lỗi: ' + (errorData.error || 'Không thể cập nhật'));
+                }
+            } catch (err) {
+                alert('❌ Lỗi mạng hoặc Server không phản hồi');
+                console.error(err);
+            }
+        }
+
+        // 4. Xử lý Form Thêm mới (Upload file + Data)
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Sử dụng FormData để gửi dữ liệu dạng multipart/form-data (bao gồm cả file)
+            const formData = new FormData();
+            formData.append('id', document.getElementById('id').value);
+            formData.append('name', document.getElementById('name').value);
+            formData.append('price', document.getElementById('price').value);
+            formData.append('quantity', document.getElementById('quantity').value);
+            
+            // Kiểm tra xem có chọn file không
+            const fileInput = document.getElementById('imageFile');
+            if(fileInput.files[0]) {
+                formData.append('imageFile', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData // Không cần set Header Content-Type, trình duyệt tự làm
+                });
+
+                if(res.ok) {
+                    alert('✅ Thêm thành công!');
+                    loadProducts(); // Tải lại bảng
+                    e.target.reset(); // Xóa trắng form
+                } else {
+                    const errorData = await res.json();
+                    alert('❌ Lỗi: ' + (errorData.error || 'Không thể thêm sản phẩm'));
+                }
+            } catch (err) {
+                alert('❌ Lỗi mạng hoặc Server không phản hồi');
+            }
+        });
+
+        // 5. Hàm Xóa (Gọi API với ID và Price)
+        async function deleteItem(id, price) {
+            // Xác nhận trước khi xóa
+            if(!confirm(`Bạn có chắc muốn xóa sản phẩm mã "${id}" với giá "${price}" không?`)) return;
+            
+            try {
+                // Gọi API DELETE theo đúng route Backend quy định: /api/products/:id/:price
+                const res = await fetch(`${API_URL}/${id}/${price}`, { method: 'DELETE' });
+                
+                if(res.ok) {
+                    loadProducts(); // Tải lại danh sách sau khi xóa
+                } else {
+                    const err = await res.json();
+                    alert('❌ Xóa thất bại: ' + err.error);
+                }
+            } catch (err) {
+                alert('❌ Lỗi kết nối khi xóa!');
+            }
+        }
+
+        // Tự động tải danh sách khi mở trang
+        loadProducts();
+    </script>
+</body>
+</html>
