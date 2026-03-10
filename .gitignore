@@ -1,0 +1,9 @@
+# Bỏ qua thư mục thư viện
+node_modules/
+
+# BỎ QUA FILE BIẾN MÔI TRƯỜNG (BẢO MẬT AWS)
+.env
+
+# Bỏ qua các file log và hệ thống
+npm-debug.log
+.DS_Store

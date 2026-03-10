@@ -1,0 +1,85 @@
+<%- include('partials/header') %>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-secondary border-opacity-25 pb-4">
+                        <div>
+                            <h2 class="fw-bold text-white mb-1">Cập nhật thông tin</h2>
+                            <p class="text-secondary mb-0">Chỉnh sửa chi tiết mẫu xe: <span class="text-primary fw-bold"><%= product.name %></span></p>
+                        </div>
+                        <span class="badge bg-secondary fs-6">ID: <%= product.id %></span>
+                    </div>
+
+                    <form action="/edit" method="POST" enctype="multipart/form-data">
+
+                        <input type="hidden" name="id" value="<%= product.id %>">
+
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label">Tên dòng xe</label>
+                                <input type="text" class="form-control form-control-lg fw-bold" name="name" value="<%= product.name %>" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Giá niêm yết (VNĐ)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="price" value="<%= product.price %>" required min="0">
+                                    <span class="input-group-text bg-dark text-white border-secondary border-opacity-25">₫</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Số lượng tồn kho</label>
+                                <input type="number" class="form-control" name="quantity" value="<%= product.quantity %>" required min="0">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Cập nhật hình ảnh</label>
+                                <div class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 p-3">
+                                    <input type="file" class="form-control mb-3" name="image" id="imgInput" accept="image/*">
+
+                                    <div class="row text-center align-items-center mt-2">
+                                        <div class="col-md-5">
+                                            <p class="small text-secondary mb-1">Ảnh hiện tại</p>
+                                            <img src="<%= product.image %>" class="img-fluid rounded border border-secondary border-opacity-25" style="max-height: 150px;">
+                                        </div>
+                                        <div class="col-md-2 text-secondary">
+                                            <i class="fas fa-arrow-right fa-2x"></i>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <p class="small text-secondary mb-1">Ảnh mới (Xem trước)</p>
+                                            <img id="preview" src="https://via.placeholder.com/300x200/272a30/ffffff?text=Chưa+chọn+ảnh+mới" class="img-fluid rounded border border-secondary border-opacity-25" style="max-height: 150px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-5">
+                            <a href="/" class="btn btn-outline-light px-4">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold">
+                            <i class="fas fa-sync-alt me-2"></i> Cập Nhật
+                        </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('imgInput').onchange = evt => {
+            const [file] = document.getElementById('imgInput').files
+            if (file) {
+                const preview = document.getElementById('preview');
+                preview.src = URL.createObjectURL(file);
+            }
+        }
+    </script>
+
+    </div>
+    </body>
+
+    </html>

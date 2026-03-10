@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h2 class="fw-bold text-white mb-2">Nhập kho xe mới</h2>
+                        <p class="text-secondary">Điền thông tin chi tiết để thêm mẫu xe vào showroom</p>
+                    </div>
+
+                    <form action="/add" method="POST" enctype="multipart/form-data">
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <div class="form-floating mb-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Mã xe (SKU)</label>
+                                            <input type="text" class="form-control" name="id" placeholder="VD: MER-C300" required>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label">Tên dòng xe</label>
+                                            <input type="text" class="form-control" name="name" placeholder="VD: Mercedes-Benz C300 AMG" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Giá niêm yết (VNĐ)</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" name="price" placeholder="VD: 2000000000" required min="0">
+                                            <span class="input-group-text bg-dark text-white border-secondary border-opacity-25">₫</span>
+                                        </div>
+                                        <div class="form-text text-white-50 ms-1">Nhập số liền, không dấu chấm (VD: 1 tỷ = 1000000000)</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Số lượng nhập</label>
+                                        <input type="number" class="form-control" name="quantity" value="1" required min="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Hình ảnh xe</label>
+                                <div class="p-4 border border-secondary border-opacity-25 rounded-3 bg-dark bg-opacity-25 text-center">
+                                    <input type="file" class="form-control mb-3" name="image" id="imgInput" accept="image/*" required>
+
+                                    <div class="mt-3">
+                                        <img id="preview" src="#" alt="Preview" class="img-fluid rounded-3 shadow-sm d-none" style="max-height: 300px; object-fit: contain;">
+                                    </div>
+                                    <p class="text-secondary small mt-2 fst-italic mb-0">* Khuyến nghị ảnh tỉ lệ 16:9, độ phân giải cao.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold py-3 text-uppercase" style="letter-spacing: 1px;">
+                            <i class="fas fa-save me-2"></i> Lưu Vào Kho
+                        </button>
+                            <a href="/" class="btn btn-outline-secondary py-2">Hủy bỏ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script xem trước ảnh
+        document.getElementById('imgInput').onchange = evt => {
+            const [file] = document.getElementById('imgInput').files
+            if (file) {
+                const preview = document.getElementById('preview');
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('d-none');
+            }
+        }
+    </script>
+
+    </div>
+    </body>
+
+    </html>
